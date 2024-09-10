@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { Link,useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import {loginStart,loginSuccess,loginFailure} from '../redux/user/userSlice'
+import OAuth from '../components/Oauth';
 
 function SignIn() {
   const [formData, setFormData] = useState({
@@ -7,9 +10,13 @@ function SignIn() {
     email: '',
     password: '',
   });
-  const [error,setError]=useState(null);  
-  const [loading, setLoading] = useState(false); // Add loading state
+  const loading = useSelector((state) => state.user.loading);  // Get loading state from Redux
+  const error = useSelector((state) => state.user.error);  // Get error state from Redux
+  // const [loading,error]= useSelector((state) => state.user);
+  // const [error,setError]=useState(null);  
+  // const [loading, setLoading] = useState(false); // Add loading state
   const navigate=useNavigate();
+  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     setFormData({
@@ -21,8 +28,7 @@ function SignIn() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      
-      setLoading(true)
+      dispatch(loginStart());
       console.log("FormData:", formData); // Log formData to check if all fields are present
   
       const res = await fetch('/api/auth/signin', {
@@ -35,16 +41,13 @@ function SignIn() {
       const data = await res.json();
   
       if(data.success === false){
-        setLoading(false);
-        setError(data.message);
+        dispatch(loginFailure(data.message))
         return;
       }
-      setLoading(false);
-      setError(null);
+      dispatch(loginSuccess(data));
       navigate("/")
     } catch (error) {
-      setLoading(false);
-      setError(error.message);
+      dispatch(loginFailure(error.message));
     }
   };
 
@@ -52,7 +55,7 @@ function SignIn() {
     <div className='p-3 max-w-lg mx-auto'>
       <h1 className='text-3xl text-center font-semibold my-7'>Sign-In</h1>
       <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
-      
+    
         <input
           type="email"
           placeholder="Email"
@@ -76,6 +79,7 @@ function SignIn() {
         >
           {loading ? "Loading..." : "Sign In"}
         </button>
+        <OAuth/>
       </form>
       <div className="flex gap-2 mt-5">
         <p>Dont have an account?</p>
