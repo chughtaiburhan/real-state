@@ -57,34 +57,28 @@ const handleChange=(e)=>{
 
 const handleSubmit = async (e) => {
   e.preventDefault();
-  console.log('Submitting form...');
-  dispatch(loginStart());
-
   try {
-      const res = await fetch('/api/auth/signin', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
-      });
+    dispatch(updateUserStart());
+    console.log(formData);
+    const res = await fetch(`/api/user/update/${currentUser._id}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
+    const data = await res.json();
+    console.log(data)
+    if (data.success === false) {
+      dispatch(updateUserFailure(data.message));
+      return;
+    }
 
-      console.log('Response received:', res);
-      
-      if (!res.ok) {
-          throw new Error('Network response was not ok.');
-      }
-
-      const data = await res.json();
-      console.log('Data received:', data);
-      
-      if (data.success === false) {
-          dispatch(loginFailure(data.message));
-      } else {
-          dispatch(loginSuccess(data));
-          navigate("/");
-      }
+    dispatch(updateUserSuccess(data));
+    updateUserSuccess(true);
   } catch (error) {
-      console.error('Sign-in error:', error);
-      dispatch(loginFailure(error.message));
+    console.error('Update failed:', error.message);
+    dispatch(updateUserFailure(error.message));
   }
 };
 
@@ -107,11 +101,11 @@ const handleDeleteUser=async()=>{
   }
 }
 
-const handleSignOut=async()=>{
+const handleSignOut = async () => {
   try {
     dispatch(signOutUserStart());
-    const res=await fetch('/api/auth/signout');
-    const data=await res.json();
+    const res = await fetch('/api/auth/signout');
+    const data = await res.json();
     if (data.success === false) {
       dispatch(deleteUserFailure(data.message));
       return;
@@ -120,7 +114,8 @@ const handleSignOut=async()=>{
   } catch (error) {
     dispatch(deleteUserFailure(data.message));
   }
-}
+};
+
   return (
     <div className="p-3 max-w-lg mx-auto">
       <h1 className="text-3xl font-semibold text-center my-7">Profile</h1>
@@ -177,8 +172,11 @@ const handleSignOut=async()=>{
       </form>
       <div className="flex justify-between mt-5">
         <span onClick={handleDeleteUser} className="text-red-700 cursor-pointer">Delete account</span>
-        <span onClick={handleSignOut} className="text-red-700 cursor-pointer">Sign out</span>
+        <span onClick={handleSignOut} className='text-red-700 cursor-pointer'>
+          Sign out
+        </span>
       </div>
+
     </div>
   );
 }
