@@ -2,37 +2,40 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import userRouter from './routes/user.route.js';
-import authRouter from './routes/auth.routes.js'
+import authRouter from './routes/auth.routes.js';
 import cookieParser from 'cookie-parser';
+
 dotenv.config();
 
 mongoose.connect(process.env.MONGO)
-.then(()=>{
-    console.log("Conneted to MongoDB");
-})
-.catch((err)=>{
-    console.log(err);
-});
-const app =express ();
+    .then(() => {
+        console.log("Connected to MongoDB");
+    })
+    .catch((err) => {
+        console.log(err);
+    });
 
-app.use(express.json());
+const app = express();
 
-app.use(cookieParser());
+// Middleware setup
+app.use(express.json()); // Parses incoming JSON requests
+app.use(cookieParser()); // Parses cookies attached to the client request
 
-app.listen(3000,()=>{
-    console.log(`Server is running on port 3000`);
-});
+// Route definitions
+app.use("/api/user", userRouter);
+app.use("/api/auth", authRouter);
 
-app.use("/api/user",userRouter);
-
-app.use("/api/auth",authRouter); 
-
-app.use((err,req,res,next)=>{
-    const statusCode=err.statusCode || 500;
-    const message=err.message || 'Internam server error';
+// Error handling middleware
+app.use((err, req, res, next) => {
+    const statusCode = err.status || 500; // Use 'err.status' instead of 'err.statusCode'
+    const message = err.message || 'Internal server error'; // Fixed typo here
     return res.status(statusCode).json({
-        success:false,
-        statusCode,
+        success: false,
+        status: statusCode,
         message,
     });
+});
+
+app.listen(3000, () => {
+    console.log(`Server is running on port 3000`);
 });

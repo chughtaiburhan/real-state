@@ -30,4 +30,27 @@ export const updateUser=async (req,res,next)=>{
     } catch (error) {
         next(error); // Pass the error to the error handling middleware
     }
-}
+};
+
+// Delete user function with correct cookie clearing
+export const deleteUser = async (req, res, next) => {
+    if (req.user.id !== req.params.id) {
+        return next(errorHandler(401, "You can only delete your own account!"));
+    }
+
+    try {
+        // Delete user by id
+        await User.findByIdAndDelete(req.params.id);
+
+        // Clear the cookie before sending the response
+        res.clearCookie('access_token');
+
+        // Send the final response
+        res.status(200).json({
+            success: true,
+            message: 'User has been deleted!',
+        });
+    } catch (error) {
+        next(error); // Pass error to middleware
+    }
+};
