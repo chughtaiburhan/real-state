@@ -69,17 +69,30 @@ export default function CreateListing() {
       uploadTask.on(
         "state_changed",
         (snapshot) => {
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          const progress =(snapshot.bytesTransferred / snapshot.totalBytes) * 100;
           console.log(`Upload is ${progress}% done`);
         },
         (error) => {
-          reject(error);
-        },
+            console.error("Error uploading file:", error);
+            if (error.code === 'storage/unauthorized') {
+              reject('You do not have permission to upload this file.');
+            } else if (error.code === 'storage/canceled') {
+              reject('File upload was canceled.');
+            } else {
+              reject('Image upload failed. Please try again.');
+            }
+          },
+        
         () => {
           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
             resolve(downloadURL);
+          })
+          .catch((error) => {
+            // console.error("Error fetching download URL:", error);
+            reject('Failed to retrieve file URL.');
           });
+
+
         }
       );
     });
