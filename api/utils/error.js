@@ -1,5 +1,5 @@
-export const errorHandler=(status,message)=>{
-    const error=new Error(message);
-    err.status = status;
-    return error;
-}
+const errorHandler = (statusCode, message) => (err, req, res, next) => {
+    res.status(statusCode).json({ error: message });
+  };
+  
+  export default errorHandler;

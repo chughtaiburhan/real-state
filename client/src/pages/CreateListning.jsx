@@ -88,7 +88,7 @@ export default function CreateListing() {
             resolve(downloadURL);
           })
           .catch((error) => {
-            // console.error("Error fetching download URL:", error);
+            console.error("Error fetching download URL:", error);
             reject('Failed to retrieve file URL.');
           });
 
